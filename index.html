@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultorio Dental - Agendamiento de Citas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+
+  <!-- Encabezado / Navegación -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🦷</span>
+        <span class="font-bold text-lg text-cyan-400">Consultorio Dental</span>
+      </div>
+      <nav class="flex gap-2">
+        <button onclick="cambiarVista('paciente')" id="btn-paciente" class="px-4 py-2 text-sm rounded-lg bg-cyan-500 text-slate-950 font-bold transition">Agendar Cita</button>
+        <button onclick="cambiarVista('admin')" id="btn-admin" class="px-4 py-2 text-sm rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Vista Dentista 🔒</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8 w-full">
+
+    <!-- VISTA 1: PACIENTE (AGENDAR CITA) -->
+    <section id="vista-paciente" class="space-y-6">
+      <div class="text-center space-y-2">
+        <h1 class="text-3xl font-bold text-white">Agenda tu cita en línea</h1>
+        <p class="text-slate-400">Selecciona el servicio, fecha y horario de tu preferencia.</p>
+      </div>
+
+      <form id="form-cita" class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 space-y-4 shadow-xl">
+        <div>
+          <label class="block text-sm font-medium mb-1">Nombre Completo *</label>
+          <input type="text" id="nombre" required placeholder="Ej. Juan Pérez" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-400">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">WhatsApp / Teléfono *</label>
+            <input type="tel" id="telefono" required placeholder="Ej. 5512345678" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Tratamiento *</label>
+            <select id="tratamiento" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-400">
+              <option value="Consulta General">Consulta General / Valoración</option>
+              <option value="Limpieza Dental">Limpieza Dental Profesional</option>
+              <option value="Resina / Calza">Resina / Reparación</option>
+              <option value="Extracción">Extracción Dental</option>
+              <option value="Urgencia">Urgencia / Dolor Agudo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Fecha *</label>
+            <input type="date" id="fecha" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Hora *</label>
+            <select id="hora" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-400">
+              <option value="09:00 AM">09:00 AM</option>
+              <option value="10:00 AM">10:00 AM</option>
+              <option value="11:00 AM">11:00 AM</option>
+              <option value="12:00 PM">12:00 PM</option>
+              <option value="03:00 AM">03:00 AM</option>
+              <option value="04:00 PM">04:00 PM</option>
+              <option value="05:00 PM">05:00 PM</option>
+              <option value="06:00 PM">06:00 PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Notas / Síntomas adicionales</label>
+          <textarea id="notas" rows="3" placeholder="¿Sientes molestia o dolor en alguna zona?" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-400"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition cursor-pointer">
+          Confirmar y Agendar Cita
+        </button>
+      </form>
+    </section>
+
+    <!-- VISTA 2: DENTISTA (PANEL DE ADMINISTRACIÓN) -->
+    <section id="vista-admin" class="hidden space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <h2 class="text-2xl font-bold text-white">Agenda del Consultorio</h2>
+        
+        <!-- Filtros y Actualización -->
+        <div class="flex items-center gap-3">
+          <input type="date" id="filtro-fecha" onchange="filtrarPorFecha()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+          <button onclick="document.getElementById('filtro-fecha').value=''; filtrarPorFecha();" class="text-xs text-slate-400 hover:text-white transition">Limpiar Filtro</button>
+          <button onclick="cargarCitas()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">🔄 Actualizar</button>
+        </div>
+      </div>
+
+      <!-- Tabla de Citas -->
+      <div class="bg-slate-800/50 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase text-xs">
+              <tr>
+    <th class="p-4">Fecha y Hora</th>
+    <th class="p-4">Paciente</th>
+    <th class="p-4">Tratamiento</th>
+    <th class="p-4">Notas / Observaciones</th> 
+    <th class="p-4">Contacto</th>
+    <th class="p-4">Estado</th>
+    <th class="p-4">Acciones</th>
+  </tr>
+            </thead>
+            <tbody id="tabla-citas-body" class="divide-y divide-slate-800 text-slate-300">
+              <tr>
+                <td colspan="6" class="p-6 text-center text-slate-500">Presiona "Vista Dentista" para cargar las citas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <style>
+        /* Color del texto y fondo del selector de fechas */
+input[type="date"] {
+  background-color: #0f172a !important; /* Fondo slate-900 muy oscuro o slate-800 */
+  color: #ffffff !important;           /* Texto blanco de alto contraste */
+  font-weight: 600;
+  border: 2px solid #06b6d4 !important; /* Borde cian para destacarlo */
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+}
+
+/* Cambiar el color del icono nativo del calendario (para navegadores Chrome / Edge / Safari) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) hue-rotate(180deg) brightness(1.5);
+  cursor: pointer;
+  padding: 2px;
+}
+    </style>
+
+
+  </main>
+
+  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    <p>© Consultorio Dental. Desarrollado con tecnología en la nube.</p>
+  </footer>
+
+  <!-- Scripts de la Aplicación -->
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
