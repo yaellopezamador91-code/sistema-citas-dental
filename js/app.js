@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const formCita = document.getElementById("form-cita");
   const inputFecha = document.getElementById('fecha');
 
-  // Validaciones del campo de fecha
+  // Validaciones al cambiar la fecha
   if (inputFecha) {
     inputFecha.addEventListener('change', (e) => {
       const fechaElegida = e.target.value;
@@ -37,18 +37,48 @@ document.addEventListener("DOMContentLoaded", () => {
       const btnSubmit = formCita.querySelector("button[type='submit']");
       const textoOriginal = btnSubmit.innerText;
 
-      const datosCita = {
-        nombre: document.getElementById("nombre").value,
-        telefono: document.getElementById("telefono").value,
-        tratamiento: document.getElementById("tratamiento").value,
-        fecha: document.getElementById("fecha").value,
-        hora: document.getElementById("hora").value,
-        notas: document.getElementById("notas") ? document.getElementById("notas").value : ""
-      };
+      const fechaInput = document.getElementById("fecha").value;
+      const horaInput = document.getElementById("hora").value;
 
       try {
         btnSubmit.disabled = true;
+        btnSubmit.innerText = "Verificando disponibilidad...";
+
+        // 🛑 VALIDACIÓN DE HORARIO OCUPADO
+        const resExistentes = await fetch(API_URL);
+        const dataExistentes = await resExistentes.json();
+
+        if (dataExistentes.status === "success" && dataExistentes.data) {
+          const yaExiste = dataExistentes.data.some(cita => {
+            // Ignorar citas canceladas
+            if (cita.estado === "Cancelada") return false;
+
+            // Limpiar fecha por si viene en ISO
+            let fCita = String(cita.fecha || '').split('T')[0];
+            let hCita = String(cita.hora || '').trim();
+
+            return fCita === fechaInput && hCita === horaInput;
+          });
+
+          if (yaExiste) {
+            alert(`⚠️ El horario de las ${horaInput} para el día ${fechaInput} ya se encuentra ocupado por otro paciente. Por favor elige otra hora u otra fecha.`);
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = textoOriginal;
+            return; // Detiene el envío
+          }
+        }
+
+        // Si el horario está libre, procedemos a agendar
         btnSubmit.innerText = "Agendando cita...";
+
+        const datosCita = {
+          nombre: document.getElementById("nombre").value,
+          telefono: document.getElementById("telefono").value,
+          tratamiento: document.getElementById("tratamiento").value,
+          fecha: fechaInput,
+          hora: horaInput,
+          notas: document.getElementById("notas") ? document.getElementById("notas").value : ""
+        };
 
         const respuesta = await fetch(API_URL, {
           method: "POST",
