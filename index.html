@@ -92,7 +92,10 @@
         
         <!-- Filtros y Actualización -->
         <div class="flex items-center gap-3">
-          <input type="date" id="filtro-fecha" onchange="filtrarPorFecha()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+          <!-- <input type="date" id="filtro-fecha" onchange="filtrarPorFecha()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"> - Busca tu input de fecha en el panel de admin y déjalo así: -->
+<input 
+  type="date" id="filtro-fecha" onchange="filtrarPorFecha(this.value)" class="bg-slate-800 text-white p-2 rounded-lg border border-slate-700"
+>
           <button onclick="document.getElementById('filtro-fecha').value=''; filtrarPorFecha();" class="text-xs text-slate-400 hover:text-white transition">Limpiar Filtro</button>
           <button onclick="cargarCitas()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">🔄 Actualizar</button>
         </div>

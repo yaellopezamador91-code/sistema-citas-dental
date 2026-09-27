@@ -1,9 +1,35 @@
-// Remplaza este valor con la URL que copiaste de Google Apps Script (debe terminar en /exec)
 const API_URL = "https://script.google.com/macros/s/AKfycbzC74zuqd7kRzpYYELq0o4WItVgtBInha5bK-2yaU7ILg3AQv_G0t7wT4dC3vzLyUVU-g/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
   const formCita = document.getElementById("form-cita");
+  const inputFecha = document.getElementById('fecha');
 
+  // Validaciones del campo de fecha
+  if (inputFecha) {
+    inputFecha.addEventListener('change', (e) => {
+      const fechaElegida = e.target.value;
+      if (!fechaElegida) return;
+
+      // 1. Validar Fin de Semana
+      const fechaSeleccionada = new Date(fechaElegida + 'T00:00:00');
+      const diaSemana = fechaSeleccionada.getDay(); // 0 = Domingo, 6 = Sábado
+
+      if (diaSemana === 0 || diaSemana === 6) {
+        alert('Atención: No hay consulta los fines de semana (Sábado y Domingo). Selecciona un día de Lunes a Viernes.');
+        e.target.value = '';
+        return;
+      }
+
+      // 2. Validar Días Bloqueados por el Dentista
+      const diasBloqueados = JSON.parse(localStorage.getItem('diasBloqueados')) || [];
+      if (diasBloqueados.includes(fechaElegida)) {
+        alert('Lo sentimos, este día no habrá servicio por descanso o vacaciones.');
+        e.target.value = '';
+      }
+    });
+  }
+
+  // Envío del Formulario
   if (formCita) {
     formCita.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -11,28 +37,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const btnSubmit = formCita.querySelector("button[type='submit']");
       const textoOriginal = btnSubmit.innerText;
 
-      // Obtener datos del formulario
       const datosCita = {
         nombre: document.getElementById("nombre").value,
         telefono: document.getElementById("telefono").value,
         tratamiento: document.getElementById("tratamiento").value,
         fecha: document.getElementById("fecha").value,
         hora: document.getElementById("hora").value,
-        notas: document.getElementById("notas").value || ""
+        notas: document.getElementById("notas") ? document.getElementById("notas").value : ""
       };
 
       try {
-        // Deshabilitar botón mientras se envía
         btnSubmit.disabled = true;
         btnSubmit.innerText = "Agendando cita...";
 
-        // Enviar datos mediante POST a Google Apps Script
         const respuesta = await fetch(API_URL, {
           method: "POST",
           mode: "cors",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(datosCita)
         });
 
@@ -47,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       } catch (error) {
         console.error("Error al conectar con la API:", error);
-        alert("Ocurrió un error de red o de conexión con la hoja de cálculo.");
+        alert("Ocurrió un error de red o de conexión.");
       } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerText = textoOriginal;
